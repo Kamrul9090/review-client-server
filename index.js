@@ -1,10 +1,65 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
 const port = process.env.PORT || 5000;
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.zvviljv.mongodb.net/?retryWrites=true&w=majority`;
+
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
+
+async function run() {
+    try {
+        const servicesCollection = client.db('serviceReview').collection('services');
+        const serviceTypeCollection = client.db('serviceReview').collection('serviceType');
+
+        app.get('/services', async (req, res) => {
+            const query = {}
+            const cursor = servicesCollection.find(query);
+            const result = await cursor.limit(3).toArray()
+            res.send(result);
+        })
+
+        app.get('/allServices', async (req, res) => {
+            const query = {}
+            const cursor = servicesCollection.find(query);
+            const result = await cursor.toArray()
+            res.send(result);
+        })
+        app.get('/allServices/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log('id', id);
+            const objectId = { _id: ObjectId(id) }
+            console.log('object', objectId);
+            const cursor = await servicesCollection.findOne(objectId);
+            console.log(cursor);
+            res.send(cursor);
+        })
+
+        app.get('/serviceType', async (req, res) => {
+            const query = {}
+            const cursor = serviceTypeCollection.find(query);
+            const result = await cursor.toArray()
+            res.send(result);
+        })
+
+
+    }
+    catch (error) {
+        console.log(error);
+    }
+}
+
+run().catch(e => console.error(e))
+
 
 
 app.get('/', (req, res) => {
