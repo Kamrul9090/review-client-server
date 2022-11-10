@@ -20,6 +20,7 @@ async function run() {
         const servicesCollection = client.db('serviceReview').collection('services');
         const serviceTypeCollection = client.db('serviceReview').collection('serviceType');
         const UserReviewCollection = client.db('serviceReview').collection('UserReview');
+        const addServiceCollection = client.db('serviceReview').collection('addService');
 
         app.get('/services', async (req, res) => {
             const query = {}
@@ -41,6 +42,7 @@ async function run() {
             const cursor = await servicesCollection.findOne(objectId);
             res.send(cursor);
         })
+
         app.post('/allServices/:id', async (req, res) => {
             const query = req.body;
             const cursor = await UserReviewCollection.insertOne(query);
@@ -59,6 +61,7 @@ async function run() {
             const result = await cursor.toArray()
             res.send(result)
         })
+
         app.delete('/reviewAdd/:id', async (req, res) => {
             const query = req.body;
             console.log(query);
@@ -73,6 +76,20 @@ async function run() {
             const query = req.body;
             const result = await UserReviewCollection.insertOne(query);
             res.send(result)
+        })
+
+        app.get('/addService', async (req, res) => {
+            const query = {};
+            const cursor = addServiceCollection.find(query)
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
+        app.post('/addService', async (req, res) => {
+            const query = req.body;
+            const cursor = await addServiceCollection.insertOne(query)
+            console.log(query);
+            res.send(cursor)
         })
     }
     catch (error) {
