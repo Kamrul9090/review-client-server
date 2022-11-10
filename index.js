@@ -20,6 +20,7 @@ async function run() {
     try {
         const servicesCollection = client.db('serviceReview').collection('services');
         const serviceTypeCollection = client.db('serviceReview').collection('serviceType');
+        const UserReviewCollection = client.db('serviceReview').collection('UserReview');
 
         app.get('/services', async (req, res) => {
             const query = {}
@@ -37,8 +38,12 @@ async function run() {
         app.get('/allServices/:id', async (req, res) => {
             const id = req.params.id;
             const objectId = { _id: ObjectId(id) }
-            console.log('object', objectId);
             const cursor = await servicesCollection.findOne(objectId);
+            res.send(cursor);
+        })
+        app.post('/allServices/:id', async (req, res) => {
+            const query = req.body;
+            const cursor = await UserReviewCollection.insertOne(query);
             res.send(cursor);
         })
 
@@ -48,8 +53,20 @@ async function run() {
             const result = await cursor.toArray()
             res.send(result);
         })
+        app.get('/reviewAdd', async (req, res) => {
+            const query = {};
+            const cursor = UserReviewCollection.find(query);
+            const result = await cursor.toArray()
+            res.send(result)
+        })
 
-
+        app.post('/reviewAdd', async (req, res) => {
+            const query = req.body;
+            console.log(query);
+            const result = await UserReviewCollection.insertOne(query);
+            console.log(result);
+            res.send(result)
+        })
     }
     catch (error) {
         console.log(error);
@@ -57,7 +74,6 @@ async function run() {
 }
 
 run().catch(e => console.error(e))
-
 
 
 app.get('/', (req, res) => {
