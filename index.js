@@ -15,6 +15,21 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        res.status(401).send({ message: 'unAuthorized access' })
+    }
+    const token = query.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, function (err, decoded) {
+        if (err) {
+            res.status(403).send({ message: 'forbidden access' })
+        }
+        req.decoded = decoded;
+        next()
+    })
+}
+
 async function run() {
     try {
         const servicesCollection = client.db('serviceReview').collection('services');
@@ -27,6 +42,7 @@ async function run() {
             const user = req.body;
 
             const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '1h' })
+            res.send({ token });
         })
 
 
@@ -71,12 +87,9 @@ async function run() {
         })
 
         app.delete('/reviewAdd/:id', async (req, res) => {
-            const query = req.body;
-            console.log(query);
             const id = req.params.id;
             const objectId = { _id: ObjectId(id) }
             const cursor = UserReviewCollection.deleteOne(objectId);
-            console.log(cursor);
             res.send(cursor)
         })
 
@@ -96,7 +109,6 @@ async function run() {
         app.post('/addService', async (req, res) => {
             const query = req.body;
             const cursor = await addServiceCollection.insertOne(query)
-            console.log(query);
             res.send(cursor)
         })
     }
